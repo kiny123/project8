@@ -115,6 +115,9 @@ class ViewController: UIViewController {
         for row in 0..<4 {
             for col in 0..<5 {
                 let letterButton = UIButton(type: .system)
+                letterButton.layer.borderWidth = 0.5
+                letterButton.layer.borderColor = UIColor.gray.cgColor
+                
                 letterButton.titleLabel?.font = UIFont.systemFont(ofSize: 36)
                 letterButton.addTarget(self, action: #selector(letterTapped), for: .touchUpInside)
 
@@ -157,14 +160,18 @@ class ViewController: UIViewController {
 
                 currentAnswer.text = ""
                 score += 1
-                
 
-                if score % 7 == 0 {
-                    let ac = UIAlertController(title: "Well done!", message: "Are you ready for the next level?", preferredStyle: .alert)
+                if letterButtons.allSatisfy({$0.isHidden}) {
+                    let ac = UIAlertController(title: "Nice!", message: "Are you sure for the next level?", preferredStyle: .alert)
                     ac.addAction(UIAlertAction(title: "Let's go!", style: .default, handler: levelUp))
                     present(ac, animated: true)
-                }
             }
+                } else {
+                    score -= 1
+                    let ac = UIAlertController(title: "Wrong!", message: "Maybe next one will be right?", preferredStyle: .alert)
+                    ac.addAction(UIAlertAction(title: "Ok!", style: .default, handler: nil))
+                    present(ac, animated: true)
+                }
     }
     
     func levelUp(action: UIAlertAction) {
