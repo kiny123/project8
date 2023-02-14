@@ -13,6 +13,9 @@ class ViewController: UIViewController {
     var currentAnswer: UITextField!
     var scoreLabel: UILabel!
     var letterButtons = [UIButton]()
+    var currentAnimation = 0
+    let buttonsView = UIView()
+
     
     var activatedButtons = [UIButton]()
     var solutions = [String]()
@@ -71,7 +74,6 @@ class ViewController: UIViewController {
         clear.addTarget(self, action: #selector(clearTapped), for: .touchUpInside)
         view.addSubview(clear)
         
-        let buttonsView = UIView()
         buttonsView.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(buttonsView)
         
@@ -136,16 +138,40 @@ class ViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        loadLevel()
-        
+
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.loadLevel()
+        }
     }
     
     @objc func letterTapped(_ sender: UIButton) {
         guard let buttonTitle = sender.titleLabel?.text else { return }
             currentAnswer.text = currentAnswer.text?.appending(buttonTitle)
             activatedButtons.append(sender)
-            sender.isHidden = true
         
+
+        UIView.animate(withDuration: 1, delay: 0, usingSpringWithDamping: 0.5, initialSpringVelocity: 5, options: [], animations: {
+            sender.alpha = 0
+            })
+        
+        currentAnimation += 1
+        
+        if currentAnimation > 1 {
+            currentAnimation = 0
+        }
+    
+}
+    
+    func levelUp(action: UIAlertAction) {
+        level += 1
+        solutions.removeAll(keepingCapacity: true)
+        DispatchQueue.global(qos: .userInitiated).async {
+            self.loadLevel()
+        }
+        
+        for button in letterButtons {
+            button.alpha = 1
+        }
     }
 
     @objc func submitTapped(_ sender: UIButton) {
@@ -161,7 +187,7 @@ class ViewController: UIViewController {
                 currentAnswer.text = ""
                 score += 1
 
-                if letterButtons.allSatisfy({$0.isHidden}) {
+                if letterButtons.allSatisfy({$0.alpha == 0}) {
                     let ac = UIAlertController(title: "Nice!", message: "Are you sure for the next level?", preferredStyle: .alert)
                     ac.addAction(UIAlertAction(title: "Let's go!", style: .default, handler: levelUp))
                     present(ac, animated: true)
@@ -173,22 +199,12 @@ class ViewController: UIViewController {
                     present(ac, animated: true)
                 }
     }
-    
-    func levelUp(action: UIAlertAction) {
-        level += 1
-        solutions.removeAll(keepingCapacity: true)
-        loadLevel()
-        
-        for button in letterButtons {
-            button.isHidden = false
-        }
-    }
 
     @objc func clearTapped(_ sender: UIButton) {
         currentAnswer.text = ""
 
             for btn in activatedButtons {
-                btn.isHidden = false
+                btn.alpha = 1
             }
 
             activatedButtons.removeAll()
